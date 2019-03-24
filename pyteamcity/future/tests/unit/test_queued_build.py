@@ -223,6 +223,9 @@ def test_trigger_build_with_responses():
     with pytest.raises(exceptions.HTTPError):
         queued_build.cancel(comment='This is a test')
 
+    # Make sure that the origin field is set correctly.
+    assert responses.calls[1].request.headers['origin'] == 'http://127.0.0.1'
+
     # Test case where build node has no build_attributes
     queued_build = tc.queued_builds.all().trigger_build(
         build_type_id='Dummysvc_Branches_Py27',

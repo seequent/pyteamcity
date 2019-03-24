@@ -88,7 +88,8 @@ class QueuedBuild(WebBrowsable):
         res = self.teamcity.session.post(
             url=url,
             headers={'Content-Type': 'application/xml',
-                     'Accept': 'application/json'},
+                     'Accept': 'application/json',
+                     'Origin': self.teamcity.base_base_url},
             data=xml)
         raise_on_status(res)
 
