@@ -3,6 +3,7 @@ from .core.queryset import QuerySet
 from .core.utils import parse_date_string, raise_on_status
 from .core.web_browsable import WebBrowsable
 
+from .build import Build
 from .build_type import BuildType
 from .user import User
 
@@ -92,6 +93,25 @@ class QueuedBuild(WebBrowsable):
                      'Origin': self.teamcity.base_base_url},
             data=xml)
         raise_on_status(res)
+
+    def get_snapshot_dependencies(self):
+        url = self.teamcity.base_url + '/app/rest/builds?locator=snapshotDependency:(to:(id:{id}),includeInitial:true),defaultFilter:false'.format(
+            id=self.id
+        )
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+
+        def _make_build(build_dict):
+            if build_dict['state'] in ('queued', 'running'):
+                return QueuedBuild.from_dict(build_dict, teamcity=self.teamcity)
+            else:
+                return Build.from_dict(build_dict, teamcity=self.teamcity)
+
+        queued_build_data = res.json()
+        return [_make_build(build_dict) for build_dict in queued_build_data['build']]
 
 
 class QueuedBuildQuerySet(QuerySet):

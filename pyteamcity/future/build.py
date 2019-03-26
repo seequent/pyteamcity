@@ -156,6 +156,19 @@ class Build(object):
         raise_on_status(res)
         return self
 
+    def get_snapshot_dependencies(self):
+        url = self.teamcity.base_url + '/app/rest/builds?locator=snapshotDependency:(to:(id:{id}),includeInitial:true),defaultFilter:false'.format(
+            id=self.id
+        )
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+
+        queued_build_data = res.json()
+        return [Build.from_dict(build_dict, teamcity=self.teamcity) for build_dict in queued_build_data['build']]
+
 
 class BuildQuerySet(QuerySet):
     uri = '/app/rest/builds/'
