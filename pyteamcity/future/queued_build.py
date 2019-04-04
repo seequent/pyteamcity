@@ -158,7 +158,10 @@ class QueuedBuildQuerySet(QuerySet):
 
         res = self.teamcity.session.post(
             url,
-            headers={'Content-Type': 'application/xml'},
+            headers={
+                'Content-Type': 'application/xml',
+                'Origin': self.teamcity.base_base_url,
+            },
             data=data)
         raise_on_status(res)
 
