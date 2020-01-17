@@ -12,6 +12,7 @@ from .build_type import BuildTypeQuerySet
 from .change import ChangeQuerySet
 from .project import ProjectQuerySet
 from .queued_build import QueuedBuildQuerySet
+from .test_occurrence import TestQuerySet
 from .user import UserQuerySet
 from .user_group import UserGroupQuerySet
 from .vcs_root import VCSRootQuerySet
@@ -85,6 +86,9 @@ class TeamCity(object):
         self.changes = Manager(
             teamcity=self,
             query_set_factory=ChangeQuerySet)
+        self.tests = Manager(
+            teamcity=self,
+            query_set_factory=TestQuerySet)
 
         self.base_base_url = "%s://%s" % (
             self.protocol, self.server)
