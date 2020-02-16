@@ -173,6 +173,13 @@ class Build(object):
 
         return d
 
+    @property
+    def status_text(self):
+        url = self.teamcity.base_base_url + self.href + '/statusText'
+        res = self.teamcity.session.get(url=url, headers={'Accept': None})
+        raise_on_status(res)
+        return res.text
+
     def get_snapshot_dependencies(self):
         url = self.teamcity.base_url + '/app/rest/builds?locator=snapshotDependency:(to:(id:{id}),includeInitial:true),defaultFilter:false'.format(
             id=self.id
