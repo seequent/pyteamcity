@@ -59,8 +59,11 @@ class TestQuerySet(QuerySet):
         return self
 
     def __iter__(self):
-        return (Test.from_dict(d, self, teamcity=self.teamcity)
-                for d in self._data()['testOccurrence'])
+        try:
+            return (Test.from_dict(d, self, teamcity=self.teamcity)
+                    for d in self._data()['testOccurrence'])
+        except KeyError:
+            return iter(())
         
 
 class TestDetail(object):

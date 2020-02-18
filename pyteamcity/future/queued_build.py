@@ -4,7 +4,7 @@ from .core.utils import parse_date_string, raise_on_status
 from .core.web_browsable import WebBrowsable
 
 from .build import Build
-from .build_type import BuildType
+from .build_type import BuildTypeQuerySet
 from .user import User
 
 
@@ -37,13 +37,7 @@ class QueuedBuild(WebBrowsable):
 
     @property
     def build_type(self):
-        teamcity = self.teamcity
-        if 'buildType' in self._data_dict:
-            build_type = BuildType.from_dict(
-                self._data_dict.get('buildType'),
-                teamcity=teamcity)
-
-        return build_type
+        return BuildTypeQuerySet(self.teamcity).get(id=self.build_type_id)
 
     def __repr__(self):
         return '<%s.%s: id=%r build_type_id=%r>' % (
@@ -94,9 +88,12 @@ class QueuedBuild(WebBrowsable):
             data=xml)
         raise_on_status(res)
 
-    def get_snapshot_dependencies(self):
-        url = self.teamcity.base_url + '/app/rest/builds?locator=snapshotDependency:(to:(id:{id}),includeInitial:true),defaultFilter:false'.format(
-            id=self.id
+    def get_snapshot_dependencies(self, filters=''):
+        if len(filters):
+            filters = ',' + filters
+        url = self.teamcity.base_url + '/app/rest/builds?locator=snapshotDependency:(to:(id:{id}),includeInitial:true),defaultFilter:false{filters}'.format(
+            id=self.id,
+            filters=filters
         )
         res = self.teamcity.session.get(
             url,

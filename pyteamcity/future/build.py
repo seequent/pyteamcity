@@ -56,11 +56,7 @@ class Build(object):
 
     @property
     def build_type(self):
-        teamcity = self.build_query_set.teamcity
-        build_type_id = self._data_dict['buildTypeId']
-        build_type = BuildTypeQuerySet(teamcity).get(id=build_type_id)
-
-        return build_type
+        return BuildTypeQuerySet(self.teamcity).get(id=self.build_type_id)
 
     def __repr__(self):
         return '<%s.%s: id=%r build_type_id=%r number=%r>' % (
@@ -180,9 +176,12 @@ class Build(object):
         raise_on_status(res)
         return res.text
 
-    def get_snapshot_dependencies(self):
-        url = self.teamcity.base_url + '/app/rest/builds?locator=snapshotDependency:(to:(id:{id}),includeInitial:true),defaultFilter:false'.format(
-            id=self.id
+    def get_snapshot_dependencies(self, filters=''):
+        if len(filters):
+            filters = ',' + filters
+        url = self.teamcity.base_url + '/app/rest/builds?locator=snapshotDependency:(to:(id:{id}),includeInitial:true),defaultFilter:false{filters}'.format(
+            id=self.id,
+            filters=filters
         )
         res = self.teamcity.session.get(
             url,
