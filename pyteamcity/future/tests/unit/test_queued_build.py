@@ -84,6 +84,17 @@ def test_unit_queued_build_with_responses():
             },
         ],
     }
+    response_build_type = {
+        "id": "Responseweb_2_Branches_Package",
+        "name": "package",
+        "projectName": "responseweb :: branches",
+        "projectId": "Responseweb_2_Branches",
+        "href": "/httpAuth/app/rest/buildTypes"
+                "/id:Responseweb_2_Branches_Package",
+        "webUrl": "https://tcserver/viewType.html"
+                  "?buildTypeId=Responseweb_2_Branches_Package",
+    }
+
     responses.add(
         responses.GET,
         tc.relative_url('app/rest/buildQueue/'),
@@ -94,6 +105,12 @@ def test_unit_queued_build_with_responses():
         responses.GET,
         tc.relative_url('app/rest/buildQueue/id:1471658'),
         json=response_json, status=200,
+        content_type='application/json',
+    )
+    responses.add(
+        responses.GET,
+        tc.relative_url('app/rest/buildTypes/id:Responseweb_2_Branches_Package'),
+        json=response_build_type, status=200,
         content_type='application/json',
     )
 
@@ -187,6 +204,16 @@ def test_trigger_build_with_responses():
             ],
         }
     }
+    response_build_type = {
+        "id": "Dummysvc_Branches_Py27",
+        "name": "py27",
+        "projectName": "dummysvc :: branches",
+        "projectId": "Dummysvc_Branches",
+        "href": "/guestAuth/app/rest/buildTypes"
+                "/id:Dummysvc_Branches_Py27",
+        "webUrl": "https://tcserver/viewType.html"
+                  "?buildTypeId=Dummysvc_Branches_Py27",
+    }
 
     # Response to triggering a build
     responses.add(
@@ -200,6 +227,13 @@ def test_trigger_build_with_responses():
         responses.POST,
         tc.relative_url('app/rest/buildQueue/id:1473600'),
         status=500,
+    )
+    # Response to build type
+    responses.add(
+        responses.GET,
+        tc.relative_url('app/rest/buildTypes/id:Dummysvc_Branches_Py27'),
+        json=response_build_type, status=200,
+        content_type='application/json'
     )
 
     queued_build = tc.queued_builds.all().trigger_build(
@@ -226,7 +260,7 @@ def test_trigger_build_with_responses():
         queued_build.cancel(comment='This is a test')
 
     # Make sure that the origin field is set correctly.
-    assert responses.calls[1].request.headers['origin'] == 'http://127.0.0.1'
+    assert responses.calls[3].request.headers['origin'] == 'http://127.0.0.1'
 
     # Test case where build node has no build_attributes
     queued_build = tc.queued_builds.all().trigger_build(
