@@ -110,7 +110,8 @@ def test_unit_create_vcs_root_with_responses():
             url=vcs_url,
             branch='master',
         )
-    assert str(excinfo.value) == 'Internal error'
+    assert str(excinfo.value) == 'Internal Server Error'
+    assert excinfo.value.text == 'Internal error'
 
     # Simulate success creating a VCSRoot
     response_json = {
