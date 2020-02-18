@@ -3,6 +3,7 @@ from .core.queryset import QuerySet
 from .core.utils import parse_date_string, raise_on_status
 from .core.web_browsable import WebBrowsable
 
+from .build import Build
 from .build_type import BuildType
 from .user import User
 
@@ -88,9 +89,29 @@ class QueuedBuild(WebBrowsable):
         res = self.teamcity.session.post(
             url=url,
             headers={'Content-Type': 'application/xml',
-                     'Accept': 'application/json'},
+                     'Accept': 'application/json',
+                     'Origin': self.teamcity.base_base_url},
             data=xml)
         raise_on_status(res)
+
+    def get_snapshot_dependencies(self):
+        url = self.teamcity.base_url + '/app/rest/builds?locator=snapshotDependency:(to:(id:{id}),includeInitial:true),defaultFilter:false'.format(
+            id=self.id
+        )
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+
+        def _make_build(build_dict):
+            if build_dict['state'] in ('queued', 'running'):
+                return QueuedBuild.from_dict(build_dict, teamcity=self.teamcity)
+            else:
+                return Build.from_dict(build_dict, teamcity=self.teamcity)
+
+        queued_build_data = res.json()
+        return [_make_build(build_dict) for build_dict in queued_build_data['build']]
 
 
 class QueuedBuildQuerySet(QuerySet):
@@ -126,18 +147,24 @@ class QueuedBuildQuerySet(QuerySet):
 
     def trigger_build(self,
                       build_type_id, branch=None, comment=None,
-                      parameters=None, agent_id=None):
+                      parameters=None, agent_id=None,
+                      at_top=False):
         """
         Trigger a new build
         """
         url = self.teamcity.base_url + self.uri
+        triggering_options = " ".join(["queueAtTop='%s'" % str(at_top).lower()])
         data = self._get_build_node(
             build_type_id, branch,
-            comment, parameters, agent_id)
+            comment, parameters, agent_id,
+            triggering_options)
 
         res = self.teamcity.session.post(
             url,
-            headers={'Content-Type': 'application/xml'},
+            headers={
+                'Content-Type': 'application/xml',
+                'Origin': self.teamcity.base_base_url,
+            },
             data=data)
         raise_on_status(res)
 
@@ -150,7 +177,8 @@ class QueuedBuildQuerySet(QuerySet):
     def _get_build_node(
             self,
             build_type_id, branch=None,
-            comment=None, parameters=None, agent_id=None):
+            comment=None, parameters=None, agent_id=None,
+            triggering_options=None):
         build_attributes = ''
 
         if branch:
@@ -160,6 +188,9 @@ class QueuedBuildQuerySet(QuerySet):
             data = '<build %s>\n' % build_attributes
         else:
             data = '<build>\n'
+
+        if triggering_options:
+            data += '   <triggeringOptions %s />' % triggering_options
 
         data += '    <buildType id="%s"/>\n' % build_type_id
 

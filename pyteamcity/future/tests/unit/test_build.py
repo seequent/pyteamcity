@@ -4,6 +4,7 @@ import pytest
 import responses
 
 from pyteamcity.future import exceptions, TeamCity
+from pyteamcity.future.build import Build
 
 tc = TeamCity(username='user', password='password')
 
@@ -643,3 +644,155 @@ def test_download_build_log():
 
         with pytest.raises(exceptions.ArtifactSizeExceeded):
             build.get_build_log(content_length=log_content_length - 1)
+
+
+@responses.activate
+def test_snapshot_dependencies():
+    response_json_snapshot_dependencies = {
+        "count": 3,
+        "href": "/app/rest/builds?locator=snapshotDependency:(to:(id:553267),includeInitial:true),defaultFilter:false",
+        "build": [
+            {
+                "id": 553267,
+                "buildTypeId": "Dummysvc_Branches_Py27",
+                "number": "2695",
+                'queuedDate': '20160810T172739-0700',
+                'startDate': '20160810T172741-0700',
+                'finishDate': '20160810T172802-0700',
+                "status": "SUCCESS",
+                "state": "finished",
+                "branchName": "<default>",
+                "defaultBranch": True,
+                "href": "/app/rest/builds/id:553267",
+                "webUrl": "http://tcserver/viewLog.html?buildId=553267&buildTypeId=Dummysvc_Branches_Py27"
+            },
+            {
+                "id": 553266,
+                "buildTypeId": "Some_Snapshot_Dependency",
+                "number": "2695",
+                'queuedDate': '20160810T172739-0700',
+                'startDate': '20160810T172741-0700',
+                'finishDate': '20160810T172802-0700',
+                "status": "SUCCESS",
+                "state": "finished",
+                "branchName": "<default>",
+                "defaultBranch": True,
+                "href": "/app/rest/builds/id:553266",
+                "webUrl": "http://tcserver/viewLog.html?buildId=553266&buildTypeId=Some_Snapshot_Dependency"
+            },
+            {
+                "id": 553264,
+                "buildTypeId": "Some_Other_Snapshot_Dependency",
+                "number": "2695",
+                'queuedDate': '20160810T172739-0700',
+                'startDate': '20160810T172741-0700',
+                'finishDate': '20160810T172802-0700',
+                "status": "SUCCESS",
+                "state": "finished",
+                "branchName": "<default>",
+                "defaultBranch": True,
+                "href": "/app/rest/builds/id:553264",
+                "webUrl": "http://tcserver/viewLog.html?buildId=553264&buildTypeId=Some_Other_Snapshot_Dependency"
+            },
+        ]
+    }
+
+    responses.add(
+        responses.GET,
+        tc.relative_url(
+            'app/rest/builds?locator=snapshotDependency:(to:(id:553267),includeInitial:true),defaultFilter:false'
+        ),
+        json=response_json_snapshot_dependencies, status=200,
+        content_type='application/json',
+    )
+
+    build = Build(
+        id=553267,
+        number="2695",
+        build_type_id="Dummysvc_Branches_Py27",
+        queued_date_string='20160810T172739-0700',
+        start_date_string='20160810T172741-0700',
+        finish_date_string='20160810T172802-0700',
+        state="finished",
+        status="SUCCESS",
+        branch_name="<default>",
+        href="/app/rest/builds/id:553267",
+        build_query_set=None,
+        teamcity=tc,
+    )
+
+    snapshot_dependencies = build.get_snapshot_dependencies()
+
+    assert len(snapshot_dependencies) == 3
+    assert _builds_equal(snapshot_dependencies[0], Build.from_dict({
+                "id": 553267,
+                "buildTypeId": "Dummysvc_Branches_Py27",
+                "number": "2695",
+                'queuedDate': '20160810T172739-0700',
+                'startDate': '20160810T172741-0700',
+                'finishDate': '20160810T172802-0700',
+                "status": "SUCCESS",
+                "state": "finished",
+                "branchName": "<default>",
+                "defaultBranch": True,
+                "href": "/app/rest/builds/id:553267",
+                "webUrl": "http://tcserver/viewLog.html?buildId=553267&buildTypeId=Dummysvc_Branches_Py27"
+            }, teamcity=tc))
+    assert _builds_equal(snapshot_dependencies[1], Build.from_dict({
+                "id": 553266,
+                "buildTypeId": "Some_Snapshot_Dependency",
+                "number": "2695",
+                'queuedDate': '20160810T172739-0700',
+                'startDate': '20160810T172741-0700',
+                'finishDate': '20160810T172802-0700',
+                "status": "SUCCESS",
+                "state": "finished",
+                "branchName": "<default>",
+                "defaultBranch": True,
+                "href": "/app/rest/builds/id:553266",
+                "webUrl": "http://tcserver/viewLog.html?buildId=553266&buildTypeId=Some_Snapshot_Dependency"
+            }, teamcity=tc))
+    assert _builds_equal(snapshot_dependencies[2], Build.from_dict({
+                "id": 553264,
+                "buildTypeId": "Some_Other_Snapshot_Dependency",
+                "number": "2695",
+                'queuedDate': '20160810T172739-0700',
+                'startDate': '20160810T172741-0700',
+                'finishDate': '20160810T172802-0700',
+                "status": "SUCCESS",
+                "state": "finished",
+                "branchName": "<default>",
+                "defaultBranch": True,
+                "href": "/app/rest/builds/id:553264",
+                "webUrl": "http://tcserver/viewLog.html?buildId=553264&buildTypeId=Some_Other_Snapshot_Dependency"
+            }, teamcity=tc))
+
+
+def _builds_equal(a, b):
+    ''' Tests if two Builds are equal, ignoring build_query_set
+    '''
+    if not isinstance(a, Build):
+        return False
+    if not isinstance(b, Build):
+        return False
+
+    attrs = [
+        'id',
+        'number',
+        'queued_date_string',
+        'start_date_string',
+        'finish_date_string',
+        'build_type_id',
+        'state',
+        'status',
+        'branch_name',
+        'href',
+        'build_query_set',
+        'teamcity',
+        ]
+
+    trues = [
+        getattr(a, attr) == getattr(b, attr) for attr in attrs
+    ]
+
+    return all(trues)

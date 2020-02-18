@@ -156,6 +156,36 @@ class Build(object):
         raise_on_status(res)
         return self
 
+    @property
+    def resulting_properties(self):
+        url = self.teamcity.base_base_url + self.href + '/resulting-properties'
+        headers = {'Origin': self.teamcity.base_base_url, 'Content-Type': 'application/xml'}
+        res = self.teamcity.session.get(url=url, headers=headers)
+        raise_on_status(res)
+        d = {}
+        for param in res.json()['property']:
+            param_obj = Parameter()
+            if 'value' in param:
+                param_obj.value = param['value']
+            if 'type' in param:
+                param_obj.ptype = param['type']
+            d[param['name']] = param_obj
+
+        return d
+
+    def get_snapshot_dependencies(self):
+        url = self.teamcity.base_url + '/app/rest/builds?locator=snapshotDependency:(to:(id:{id}),includeInitial:true),defaultFilter:false'.format(
+            id=self.id
+        )
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+
+        queued_build_data = res.json()
+        return [Build.from_dict(build_dict, teamcity=self.teamcity) for build_dict in queued_build_data['build']]
+
 
 class BuildQuerySet(QuerySet):
     uri = '/app/rest/builds/'
