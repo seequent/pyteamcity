@@ -79,7 +79,7 @@ class QuerySet(object):
 
     def __len__(self):
         data = self._data()
-        return data['count']
+        return data.get('count', 0)
 
     def __next__(self):  # pragma: no cover
         return next(self.__iter__())
