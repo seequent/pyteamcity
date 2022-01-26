@@ -11,8 +11,6 @@ class Test(object):
             self.build_id, self.test_id = re.match('build:\(id:(\d+)\),id:(\d+)', id).groups()
         except AttributeError:
             self.test_id, self.build_id = re.match('id:(\d+),build:\(id:(\d+)\)', id).groups()
-
-        self.test_id, self.build_id = re.findall(r'\d+', id)
         self.name = name
         self.status = status
         self.duration = duration
