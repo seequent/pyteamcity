@@ -176,6 +176,21 @@ class Build(object):
         raise_on_status(res)
         return res.text
 
+    def cancel(self, comment):
+        xml = """
+            <buildCancelRequest
+               comment='{comment}'
+               readdIntoQueue='false' />
+            """.format(comment=comment)
+        url = self.teamcity.base_base_url + self.href
+        res = self.teamcity.session.post(
+            url=url,
+            headers={'Content-Type': 'application/xml',
+                     'Accept': 'application/json',
+                     'Origin': self.teamcity.base_base_url},
+            data=xml)
+        raise_on_status(res)
+
     def get_snapshot_dependencies(self, filters=''):
         if len(filters):
             filters = ',' + filters
