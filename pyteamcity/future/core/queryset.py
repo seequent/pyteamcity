@@ -21,7 +21,7 @@ class QuerySet(object):
 
     def _get_url(self, details=False, href=None):
         if href is not None:
-            return 'http://' + self.teamcity.server + href
+            return self.teamcity.base_url + href
 
         url = self.base_url
 
@@ -59,6 +59,27 @@ class QuerySet(object):
             self._data_dict = self._fetch(details=details, href=href)
 
         return self._data_dict
+
+    def fetch_all(self):
+        if self._data_dict:
+            return
+        href = None
+        while href != -1:
+            # self._locator.page = (start, 50)
+            page = self._fetch(href=href)
+            for key, value in page.items():
+                if key in self._data_dict:
+                    if isinstance(value, list):
+                        self._data_dict[key].extend(value)
+                    elif isinstance(value, int):
+                        self._data_dict[key] += value
+                else:
+                    self._data_dict[key] = value
+            href = page.get('nextHref', -1)
+        for key, value in self._data_dict.items():
+            if isinstance(value, int):
+                setattr(self, key, value)
+        return self
 
     @classmethod
     def _from_dict(cls, d, query_set):

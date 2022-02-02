@@ -55,6 +55,10 @@ class Build(object):
         return Agent.from_dict(self._data_dict.get('agent'))
 
     @property
+    def web_url(self):
+        return self._data_dict['webUrl']
+
+    @property
     def build_type(self):
         return BuildTypeQuerySet(self.teamcity).get(id=self.build_type_id)
 
@@ -220,7 +224,7 @@ class BuildQuerySet(QuerySet):
                since_build=None, since_date=None, status=None,
                agent_name=None, personal=None,
                canceled=None, failed_to_start=None, running=None,
-               start=None, count=None, lookup_limit=None):
+               start=None, count=None, lookup_limit=None, default_filter=None):
         if id is not None:
             self._add_pred('id', id)
         if project is not None:
@@ -264,6 +268,8 @@ class BuildQuerySet(QuerySet):
             self._add_pred('count', count)
         if lookup_limit is not None:
             self._add_pred('lookupLimit', lookup_limit)
+        if default_filter is not None:
+            self._add_pred('defaultFilter', default_filter)
         return self
 
     def _get_since_date(self, since_date):
