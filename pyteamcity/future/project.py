@@ -109,7 +109,8 @@ class ProjectQuerySet(QuerySet):
     def __iter__(self):
         return (Project.from_dict(d, self) for d in self._data()['project'])
 
-    def create(self, name, id=None, parent_project_locator='id:_Root'):
+    def create(self, name, id=None, parent_project_locator='id:_Root', source_project_locator=None):
+        """ source_project_locator is an optional locator string of the project to create a copy of. """
         url = self.base_url
         attrs_dict = {'name': name}
         if id is not None:
@@ -117,13 +118,12 @@ class ProjectQuerySet(QuerySet):
         attrs = ' '.join([
             '%s="%s"' % (k, v) for k, v in attrs_dict.items()
         ])
-        xml = """
-            <newProjectDescription {attrs}>
-              <parentProject locator='{parent_project_locator}'/>
-            </newProjectDescription>
-            """.format(
-                attrs=attrs,
-                parent_project_locator=parent_project_locator)
+        xml = f"""
+              <newProjectDescription {attrs}>
+                {f"<sourceProject locator='{source_project_locator}'/>" if source_project_locator is not None else ""}
+                <parentProject locator='{parent_project_locator}'/>
+              </newProjectDescription>
+              """
         res = self.teamcity.session.post(
             url=url,
             headers={'Content-Type': 'application/xml'},
