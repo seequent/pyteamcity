@@ -117,9 +117,8 @@ class BuildType(object):
         print(res.json())
         res = self.teamcity.session.put(
             url=url,
-            headers={'Content-Type': 'text/plain',
-                     'Accept': 'text/plain'},
-            data=res.text)
+            headers={'Content-Type': 'application/json'},
+            data=res.json())
         raise_on_status(res)
 
     def set_trigger_property(self, trigger_id, property_name, property_value):
