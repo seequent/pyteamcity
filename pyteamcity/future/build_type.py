@@ -110,8 +110,7 @@ class BuildType(object):
             f'/triggers/{trigger_id}'])
         res = self.teamcity.session.get(
             url,
-            headers={'Content-Type': 'application/xml',
-                     'Accept': 'application/xml'}
+            headers={'Content-Type': 'application/xml'}
         )
         raise_on_status(res)
         print(res.text)
