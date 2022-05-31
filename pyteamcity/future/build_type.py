@@ -117,7 +117,7 @@ class BuildType(object):
         print(res.json())
         res = self.teamcity.session.put(
             url=url,
-            headers={'Content-Type': 'text/plain'},
+            headers={'Content-Type': 'application/json'},
             data=res.text)
         raise_on_status(res)
 
