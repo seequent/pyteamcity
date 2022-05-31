@@ -99,7 +99,20 @@ class BuildType(object):
             headers={'Content-Type': 'application/xml'}
         )
         raise_on_status(res)
-        return res.json()
+        triggers = res.get('trigger', [])
+        return triggers
+
+    def set_trigger_property(self, trigger_id, property_name, property_value):
+        url = ''.join([
+            self.teamcity.base_base_url,
+            self.href,
+            f'/triggers/{trigger_id}/{property_name}'])
+        res = self.teamcity.session.put(
+            url=url,
+            headers={'Content-Type': 'text/plain',
+                     'Accept': 'text/plain'},
+            data=str(property_value))
+        raise_on_status(res)
 
     def delete(self):
         url = self.teamcity.base_base_url + self.href
