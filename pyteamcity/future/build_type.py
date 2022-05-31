@@ -107,7 +107,7 @@ class BuildType(object):
         url = ''.join([
             self.teamcity.base_base_url,
             self.href,
-            f'/triggers/{trigger_id}/properties'])
+            f'/triggers/{trigger_id}'])
         res = self.teamcity.session.get(
             url,
             headers={'Content-Type': 'application/xml',
