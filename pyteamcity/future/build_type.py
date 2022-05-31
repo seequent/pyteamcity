@@ -89,6 +89,18 @@ class BuildType(object):
             data=str(counter))
         raise_on_status(res)
 
+    def get_triggers(self):
+        url = ''.join([
+            self.teamcity.base_base_url,
+            self.href,
+            '/triggers'])
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+        return res.json()
+
     def delete(self):
         url = self.teamcity.base_base_url + self.href
         res = self.teamcity.session.delete(url)
