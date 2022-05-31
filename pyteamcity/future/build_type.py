@@ -104,6 +104,19 @@ class BuildType(object):
         triggers = json.get('trigger', [])
         return triggers
 
+    def get_trigger_properties(self, trigger_id):
+        url = ''.join([
+            self.teamcity.base_base_url,
+            self.href,
+            f'/triggers/{trigger_id}/properties'])
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+        print(res.text)
+        print(res.json())
+
     def set_trigger_property(self, trigger_id, property_name, property_value):
         url = ''.join([
             self.teamcity.base_base_url,
