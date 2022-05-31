@@ -99,7 +99,6 @@ class BuildType(object):
             headers={'Content-Type': 'application/xml'}
         )
         raise_on_status(res)
-        print(res.text)
         json = res.json()
         triggers = json.get('trigger', [])
         return triggers
