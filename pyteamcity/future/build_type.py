@@ -118,7 +118,7 @@ class BuildType(object):
         res = self.teamcity.session.put(
             url=url,
             headers={'Content-Type': 'application/json'},
-            data=res.text)
+            data=res.text.replace('<default>', 'TEST_BRANCH'))
         raise_on_status(res)
 
     def set_trigger_property(self, trigger_id, property_name, property_value):
