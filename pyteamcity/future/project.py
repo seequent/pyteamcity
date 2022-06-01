@@ -98,7 +98,8 @@ class Project(WebBrowsable):
         url = self.teamcity.base_base_url + self.href + '/description'
         res = self.teamcity.session.put(
             url=url,
-            headers={'Content-Type': 'text/plain'},
+            headers={'Content-Type': 'text/plain',
+                     'Accept': 'text/plain'},
             data=description)
         raise_on_status(res)
 
