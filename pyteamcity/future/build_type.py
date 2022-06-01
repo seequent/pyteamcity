@@ -122,7 +122,7 @@ class BuildType(object):
             f'/triggers/{trigger_locator}'])
         res = self.teamcity.session.put(
             url=url,
-            headers={'Content-Type': 'application/json'},
+            headers={'Content-Type': 'text/plain'},
             data=trigger_data)
         raise_on_status(res)
 
@@ -137,7 +137,6 @@ class BuildType(object):
         else:
             # No existing property with name found, append a new property
             trigger_properties.append({'name': property_name, 'value': property_value})
-        print(str(trigger_data))
         self.set_trigger(trigger_locator, str(trigger_data))
 
     def delete(self):
