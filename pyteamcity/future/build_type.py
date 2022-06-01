@@ -1,3 +1,5 @@
+import json
+
 from .core.parameter import Parameter
 from .core.queryset import QuerySet
 from .core.utils import raise_on_status
@@ -122,7 +124,7 @@ class BuildType(object):
             f'/triggers/{trigger_locator}'])
         res = self.teamcity.session.put(
             url=url,
-            headers={'Content-Type': 'text/plain'},
+            headers={'Content-Type': 'application/json'},
             data=trigger_data)
         raise_on_status(res)
 
@@ -137,7 +139,8 @@ class BuildType(object):
         else:
             # No existing property with name found, append a new property
             trigger_properties.append({'name': property_name, 'value': property_value})
-        self.set_trigger(trigger_locator, str(trigger_data))
+        trigger_json_data = json.dumps(trigger_data)
+        self.set_trigger(trigger_locator, trigger_json_data)
 
     def delete(self):
         url = self.teamcity.base_base_url + self.href
