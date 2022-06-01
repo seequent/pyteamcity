@@ -94,6 +94,14 @@ class Project(WebBrowsable):
         build_type = BuildType.from_dict(res.json(), teamcity=self.teamcity)
         return build_type
 
+    def set_description(self, description):
+        url = self.teamcity.base_base_url + self.href + '/description'
+        res = self.teamcity.session.put(
+            url=url,
+            headers={'Content-Type': 'text/plain'},
+            data=description)
+        raise_on_status(res)
+
 
 class ProjectQuerySet(QuerySet):
     uri = '/app/rest/projects/'
