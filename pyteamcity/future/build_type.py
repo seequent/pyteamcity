@@ -1,3 +1,5 @@
+import json
+
 from .core.parameter import Parameter
 from .core.queryset import QuerySet
 from .core.utils import raise_on_status
@@ -88,6 +90,57 @@ class BuildType(object):
                      'Accept': 'text/plain'},
             data=str(counter))
         raise_on_status(res)
+
+    def get_triggers(self):
+        url = ''.join([
+            self.teamcity.base_base_url,
+            self.href,
+            '/triggers'])
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+        json = res.json()
+        triggers = json.get('trigger', [])
+        return triggers
+
+    def get_trigger(self, trigger_locator):
+        url = ''.join([
+            self.teamcity.base_base_url,
+            self.href,
+            f'/triggers/{trigger_locator}'])
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+        return res.json()
+
+    def set_trigger(self, trigger_locator, trigger_data):
+        url = ''.join([
+            self.teamcity.base_base_url,
+            self.href,
+            f'/triggers/{trigger_locator}'])
+        res = self.teamcity.session.put(
+            url=url,
+            headers={'Content-Type': 'application/json'},
+            data=trigger_data)
+        raise_on_status(res)
+
+    def set_trigger_property(self, trigger_locator, property_name, property_value):
+        trigger_data = self.get_trigger(trigger_locator)
+        trigger_properties = trigger_data['properties']['property']
+        for i, prop in enumerate(trigger_properties):
+            if prop['name'] == property_name:
+                # Update the value of the existing property
+                prop['value'] = property_value
+                break
+        else:
+            # No existing property with name found, append a new property
+            trigger_properties.append({'name': property_name, 'value': property_value})
+        trigger_json_data = json.dumps(trigger_data)
+        self.set_trigger(trigger_locator, trigger_json_data)
 
     def delete(self):
         url = self.teamcity.base_base_url + self.href
