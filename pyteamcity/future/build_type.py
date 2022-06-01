@@ -137,6 +137,7 @@ class BuildType(object):
         else:
             # No existing property with name found, append a new property
             trigger_properties.append({'name': property_name, 'value': property_value})
+        print(str(trigger_data))
         self.set_trigger(trigger_locator, str(trigger_data))
 
     def delete(self):
