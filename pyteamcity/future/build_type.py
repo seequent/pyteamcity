@@ -173,7 +173,8 @@ class BuildType(object):
             f'/parameters/{parameter_name}'])
         res = self.teamcity.session.put(
             url=url,
-            headers={'Content-Type': 'text/plain'},
+            headers={'Content-Type': 'text/plain',
+                     'Accept': 'text/plain'},
             data=str(parameter_value))
         raise_on_status(res)
 
