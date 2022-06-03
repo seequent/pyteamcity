@@ -166,6 +166,17 @@ class BuildType(object):
         raise_on_status(res)
         return res.json()
 
+    def set_parameter(self, parameter_name, parameter_value):
+        url = ''.join([
+            self.teamcity.base_base_url,
+            self.href,
+            f'/parameters/{parameter_name}'])
+        res = self.teamcity.session.put(
+            url=url,
+            headers={'Content-Type': 'text/plain'},
+            data=str(parameter_value))
+        raise_on_status(res)
+
     def delete(self):
         url = self.teamcity.base_base_url + self.href
         res = self.teamcity.session.delete(url)
