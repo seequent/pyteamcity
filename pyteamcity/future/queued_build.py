@@ -145,7 +145,7 @@ class QueuedBuildQuerySet(QuerySet):
     def trigger_build(self,
                       build_type_id, branch=None, comment=None,
                       parameters=None, agent_id=None,
-                      at_top=False):
+                      at_top=False, change_version=None):
         """
         Trigger a new build
         """
@@ -154,7 +154,7 @@ class QueuedBuildQuerySet(QuerySet):
         data = self._get_build_node(
             build_type_id, branch,
             comment, parameters, agent_id,
-            triggering_options)
+            triggering_options, change_version)
 
         res = self.teamcity.session.post(
             url,
@@ -175,7 +175,7 @@ class QueuedBuildQuerySet(QuerySet):
             self,
             build_type_id, branch=None,
             comment=None, parameters=None, agent_id=None,
-            triggering_options=None):
+            triggering_options=None, change_version=None):
         build_attributes = ''
 
         if branch:
@@ -190,6 +190,11 @@ class QueuedBuildQuerySet(QuerySet):
             data += '   <triggeringOptions %s />' % triggering_options
 
         data += '    <buildType id="%s"/>\n' % build_type_id
+
+        if change_version:
+            data += '    <lastChanges>'
+            data += f'        <change locator="version:{change_version},buildType:(id:{build_type_id})"/>'
+            data += '    </lastChanges>'
 
         if agent_id:
             data += '    <agent id="%s"/>\n' % agent_id
