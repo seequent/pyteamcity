@@ -209,7 +209,8 @@ class Build(object):
         raise_on_status(res)
 
         queued_build_data = res.json()
-        return [Build.from_dict(build_dict, teamcity=self.teamcity) for build_dict in queued_build_data['build']]
+        return [Build.from_dict(build_dict, build_query_set=self.build_query_set, teamcity=self.teamcity)
+                for build_dict in queued_build_data['build']]
 
 
 class BuildQuerySet(QuerySet):
