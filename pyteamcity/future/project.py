@@ -94,6 +94,33 @@ class Project(WebBrowsable):
         build_type = BuildType.from_dict(res.json(), teamcity=self.teamcity)
         return build_type
 
+    def get_parameters(self):
+        url = self.teamcity.base_base_url + self.href + '/parameters'
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+        return res.json()
+
+    def get_parameter(self, parameter_name):
+        url = self.teamcity.base_base_url + self.href + '/parameters/' + parameter_name
+        res = self.teamcity.session.get(
+            url,
+            headers={'Content-Type': 'application/xml'}
+        )
+        raise_on_status(res)
+        return res.json()
+
+    def set_parameter(self, parameter_name, parameter_value):
+        url = self.teamcity.base_base_url + self.href + '/parameters/' + parameter_name
+        res = self.teamcity.session.put(
+            url=url,
+            headers={'Content-Type': 'text/plain',
+                     'Accept': 'text/plain'},
+            data=str(parameter_value))
+        raise_on_status(res)
+
     def set_description(self, description):
         url = self.teamcity.base_base_url + self.href + '/description'
         res = self.teamcity.session.put(
